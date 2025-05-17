@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Self-Hosted Authenticator</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h1>Self-Hosted Authenticator</h1>
+        <div class="theme-switch-wrapper">
+          <i class="fas fa-sun"></i>
+          <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider"></div>
+          </label>
+          <i class="fas fa-moon"></i>
+        </div>
+      </div>
+    </header>
+    
+    <main>
+      <div class="add-account">
+        <h2>Add New Account</h2>
+        
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="qrcode">QR Code</button>
+          <button class="tab-btn" data-tab="uri">URI Entry</button>
+          <button class="tab-btn" data-tab="manual">Manual Entry</button>
+        </div>
+
+        <div class="tab-content active" id="qrcode-tab">
+          <div class="drop-area" id="qr-drop-area">
+            <i class="fas fa-qrcode fa-3x"></i>
+            <p>Drag and drop a QR code image here</p>
+            <p>or press Ctrl+V to paste an image</p>
+            <p>or</p>
+            <label for="qr-file-input" class="btn">Choose File</label>
+            <input type="file" id="qr-file-input" accept="image/*" style="display: none;">
+          </div>
+          <div class="preview-area" id="qr-preview-area" style="display: none;">
+            <img id="qr-preview-image" src="" alt="QR Code Preview">
+            <div class="actions">
+              <button class="btn secondary" id="qr-cancel-btn">Cancel</button>
+              <button class="btn" id="qr-scan-btn">Scan Code</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="uri-tab">
+          <form id="uri-form">
+            <div class="form-group">
+              <label for="uri-input">Authentication URI</label>
+              <input type="text" id="uri-input" placeholder="otpauth://totp/...">
+              <small>Example: otpauth://totp/Example:alice@google.com?secret=JBSWY3DPEHPK3PXP&issuer=Example</small>
+            </div>
+            <button type="submit" class="btn">Add Account</button>
+          </form>
+        </div>
+        
+        <div class="tab-content" id="manual-tab">
+          <form id="manual-form">
+            <div class="form-group">
+              <label for="issuer-input">Service/Issuer</label>
+              <input type="text" id="issuer-input" placeholder="Google, Microsoft, GitHub, etc.">
+            </div>
+            <div class="form-group">
+              <label for="name-input">Account Name/Username</label>
+              <input type="text" id="name-input" placeholder="username@example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="secret-input">Secret Key</label>
+              <input type="text" id="secret-input" placeholder="Base32 encoded secret key" required>
+              <small>Example: JBSWY3DPEHPK3PXP (usually shown when setting up 2FA)</small>
+            </div>
+            <button type="submit" class="btn">Add Account</button>
+          </form>
+        </div>
+      </div>
+      
+      <div class="accounts">
+        <h2>Your Accounts</h2>
+        <div class="accounts-list" id="accounts-list">
+          <!-- Accounts will be loaded here -->
+          <div class="placeholder" id="no-accounts-placeholder">
+            <p>No accounts added yet. Add your first account above.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <footer>
+      <p>Self-Hosted Authenticator - All data stored locally</p>
+      <p>Made by <a href="https://ethannguyen2k.github.io/" target="_blank">Ethan</a> ✌️ - <a href="https://github.com/ethannguyen2k/self-hosted-totp-auth" target="_blank">Source</a></p>
+    </footer>
+  </div>
+    <template id="account-template">
+    <div class="account-card" data-id="">
+      <div class="account-info">
+        <div class="account-issuer"></div>
+        <div class="account-name"></div>
+      </div>
+      <div class="token-display">
+        <div class="token-value"></div>
+      </div>
+      <div class="account-actions">
+        <button class="btn icon remove-btn" title="Remove account">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+      <div class="token-timer">
+        <div class="timer-bar"></div>
+      </div>
+    </div>
+  </template>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

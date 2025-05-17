@@ -1,0 +1,13 @@
+services:
+  authenticator:
+    build: .
+    container_name: authenticator-app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data:rw
+    environment:
+      - NODE_ENV=production
+      # Set a secure encryption key for production
+      - ENCRYPTION_KEY=PreSharedSecret123
+    restart: unless-stopped
