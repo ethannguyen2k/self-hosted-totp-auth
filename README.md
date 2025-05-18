@@ -144,14 +144,11 @@ Once accounts are added, they'll appear in the "Your Accounts" section with:
 
 ### Removing Accounts
 
-To remove an account, click the trash icon on the account card.
+To remove an account, click the trash icon on the account card, or delete all button.
 
 ### Theme Customization
 
-The application supports both light and dark themes:
-- Toggle between themes using the switch in the header
-- Your preference will be saved for future sessions
-- By default, the app will respect your system's theme preference
+The application supports both light and dark themes: Toggle between themes using the switch in the header.
 
 ## Security Considerations
 

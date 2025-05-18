@@ -463,6 +463,25 @@ app.delete('/api/accounts/:id', async (req, res) => {
   }
 });
 
+// API to delete all accounts
+app.delete('/api/accounts-deleteall', async (req, res) => {
+  console.log('Request to delete ALL accounts received');
+  
+  try {
+    const result = await dbRun(`DELETE FROM accounts`);
+    
+    console.log(`Removed ${result.changes} account(s) from database`);
+    
+    res.json({ 
+      success: true,
+      deletedCount: result.changes
+    });
+  } catch (err) {
+    console.error('Error removing all accounts:', err);
+    res.status(500).json({ error: 'Failed to remove all accounts' });
+  }
+});
+
 // API to get debug information
 app.get('/api/debug', async (req, res) => {
   console.log('Debug information requested');

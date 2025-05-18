@@ -356,7 +356,7 @@ footer a:hover {
 }
 
 .slider {
-  background-color: var(--gray-color);
+  background-color: #FFCC33;
   bottom: 0;
   cursor: pointer;
   left: 0;
@@ -380,7 +380,7 @@ footer a:hover {
 }
 
 input:checked + .slider {
-  background-color: var(--primary-color);
+  background-color: #9575CD;
 }
 
 input:checked + .slider:before {
@@ -395,4 +395,13 @@ input:checked + .slider:before {
 .theme-switch-wrapper .fa-moon {
   margin-left: 5px;
   color: var(--text-color);
+}
+
+.btn.danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn.danger:hover {
+  background-color: #d32f2f; /* Darker red on hover */
 }

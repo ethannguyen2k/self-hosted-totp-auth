@@ -44,15 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const accountsList = document.getElementById('accounts-list');
   const noAccountsPlaceholder = document.getElementById('no-accounts-placeholder');
   const accountTemplate = document.getElementById('account-template');
-    // Active accounts and their timers
+  // Active accounts and their timers
   const activeAccounts = new Map();
-    // QR code scanning elements
+  // QR code scanning elements
   const qrDropArea = document.getElementById('qr-drop-area');
   const qrFileInput = document.getElementById('qr-file-input');
   const qrPreviewArea = document.getElementById('qr-preview-area');
   const qrPreviewImage = document.getElementById('qr-preview-image');
   const qrCancelBtn = document.getElementById('qr-cancel-btn');
   const qrScanBtn = document.getElementById('qr-scan-btn');
+  // Add delete all button reference
+  const deleteAllBtn = document.getElementById('delete-all-btn');
   
   // Fetch initial accounts
   fetchAccounts();
@@ -101,13 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   // URI form submission
-  uriForm.addEventListener('submit', (e) => {
+  uriForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const uri = uriInput.value.trim();
     
     if (!uri) {
-      alert('Please enter a valid URI');
+      await customAlert.alert('Please enter a valid URI');
       return;
     }
     
@@ -117,22 +119,27 @@ document.addEventListener('DOMContentLoaded', () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ uri }),
-    })
-    .then(response => response.json())
-    .then(data => {
+    })    .then(response => response.json())
+    .then(async data => {
       if (data.error) {
         throw new Error(data.error);
       }
       uriInput.value = '';
       fetchAccounts();
+      await customAlert.success('Account added successfully!', {
+        title: 'Account Added',
+        confirmText: 'OK'
+      });
     })
-    .catch(error => {
-      alert(`Error: ${error.message}`);
+    .catch(async error => {
+      await customAlert.alert(`Error: ${error.message}`, {
+        title: 'Error Adding Account'
+      });
     });
   });
   
   // Manual form submission
-  manualForm.addEventListener('submit', (e) => {
+  manualForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const name = nameInput.value.trim();
@@ -140,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const secret = secretInput.value.trim().replace(/\s+/g, '').toUpperCase();
     
     if (!name || !secret) {
-      alert('Please enter both name and secret key');
+      await customAlert.alert('Please enter both name and secret key');
       return;
     }
     
@@ -150,9 +157,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ name, issuer, secret }),
-    })
-    .then(response => response.json())
-    .then(data => {
+    })    .then(response => response.json())
+    .then(async data => {
       if (data.error) {
         throw new Error(data.error);
       }
@@ -160,9 +166,15 @@ document.addEventListener('DOMContentLoaded', () => {
       issuerInput.value = '';
       secretInput.value = '';
       fetchAccounts();
+      await customAlert.success('Account added successfully!', {
+        title: 'Account Added',
+        confirmText: 'OK'
+      });
     })
-    .catch(error => {
-      alert(`Error: ${error.message}`);
+    .catch(async error => {
+      await customAlert.alert(`Error: ${error.message}`, {
+        title: 'Error Adding Account'
+      });
     });
   });
   
@@ -293,12 +305,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return token;
   }
-  
-  // Remove account
-  function removeAccount(accountId) {
+    // Remove account
+  async function removeAccount(accountId) {
     console.log(`Attempting to remove account: ${accountId}`);
-    
-    if (!confirm('Are you sure you want to remove this account?')) {
+  
+    const confirmed = await customAlert.dangerConfirm('Are you sure you want to remove this account?', {
+      title: 'Remove Account',
+      confirmText: 'Remove',
+      cancelText: 'Cancel'
+    });
+    if (!confirmed) {
       return;
     }
     
@@ -310,8 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
-      })
-      .then(data => {
+      })      .then(data => {
         console.log(`Account removal response:`, data);
         
         if (data.success) {
@@ -332,10 +347,17 @@ document.addEventListener('DOMContentLoaded', () => {
           if (accountsList.querySelectorAll('.account-card').length === 0) {
             noAccountsPlaceholder.hidden = false;
           }
+          
+          // Show success message
+          customAlert.success('Account removed successfully!', {
+            title: 'Account Removed',
+            confirmText: 'OK'
+          });
         }
-      })      .catch(error => {
+      })
+      .catch(async error => {
         console.error(`Error removing account ${accountId}:`, error);
-        alert('Failed to remove account. Please try again.');
+        await customAlert.alert('Failed to remove account. Please try again.');
       });
   }
   
@@ -390,8 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   qrScanBtn.addEventListener('click', () => {
     scanQRCode();
-  });
-  function handleQRCodeFile(file) {
+  });  function handleQRCodeFile(file) {
     const reader = new FileReader();
     
     reader.onload = (e) => {
@@ -407,10 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   }
 
-  function scanQRCode() {
+  async function scanQRCode() {
     const img = new Image();
     
-    img.onload = () => {
+    img.onload = async () => {
       // Create a canvas to draw the image
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -445,16 +466,83 @@ document.addEventListener('DOMContentLoaded', () => {
           
           uriForm.dispatchEvent(new Event('submit'));
         } else {
-          alert('Invalid QR code: Not a valid authentication URI');
+          await customAlert.alert('Invalid QR code: Not a valid authentication URI');
         }
       } else {
-        alert('No QR code found in the image. Please try a different image.');
+        await customAlert.alert('No QR code found in the image. Please try a different image.');
       }
-      
-      // Reset the QR code scanning UI
+        // Reset the QR code scanning UI
       qrCancelBtn.click();
     };
     
     img.src = qrPreviewImage.src;
+  }
+  // Delete all accounts functionality
+  deleteAllBtn.addEventListener('click', async () => {
+    // Confirm dialog with strong warning using custom alert
+    const confirmResult = await customAlert.dangerConfirm(
+      'WARNING: This will permanently delete ALL your authenticator accounts. This action cannot be undone. Are you sure?',
+      {
+        title: 'Delete All Accounts',
+        confirmText: 'Delete',
+        cancelText: 'Cancel'
+      }
+    );
+    
+    if (confirmResult) {
+      // Double-confirm for safety
+      const doubleConfirm = await customAlert.dangerConfirm(
+        'Final warning: You are about to delete ALL your authenticator accounts. Please confirm to proceed.',
+        {
+          title: 'Final Confirmation',
+          confirmText: 'Yes, Delete All',
+          cancelText: 'No, Keep My Accounts'
+        }
+      );
+      
+      if (doubleConfirm) {
+        deleteAllAccounts();
+      }
+    }
+  });
+
+  // Function to delete all accounts
+  function deleteAllAccounts() {
+    fetch('/api/accounts-deleteall', {
+      method: 'DELETE',
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        // First, clear all timers
+        for (const [id, timer] of activeAccounts.entries()) {
+          clearInterval(timer);
+        }
+        activeAccounts.clear();
+        
+        // Remove all account cards from DOM (important: only target the account cards!)
+        const accountCards = accountsList.querySelectorAll('.account-card');
+        accountCards.forEach(card => {
+          card.remove();
+        });
+          // Make sure the placeholder is visible
+        noAccountsPlaceholder.hidden = false;
+        
+        console.log(`Deleted ${data.deletedCount} accounts and cleared UI`);
+        customAlert.success(`All accounts have been deleted. (${data.deletedCount} accounts removed)`, {
+          title: 'Accounts Deleted',
+          confirmText: 'OK'
+        });
+      }
+    })
+    .catch(async error => {
+      console.error('Error deleting all accounts:', error);
+      await customAlert.alert('Failed to delete all accounts. Error: ' + error.message);
+    });
   }
 });
