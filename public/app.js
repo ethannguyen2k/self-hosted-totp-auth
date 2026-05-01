@@ -55,6 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const qrScanBtn = document.getElementById('qr-scan-btn');
   // Add delete all button reference
   const deleteAllBtn = document.getElementById('delete-all-btn');
+  // Edit modal elements
+  const editModal = document.getElementById('edit-modal');
+  const editForm = document.getElementById('edit-form');
+  const editIdInput = document.getElementById('edit-id');
+  const editIssuerInput = document.getElementById('edit-issuer');
+  const editNameInput = document.getElementById('edit-name');
+  const editCancelBtn = document.getElementById('edit-cancel-btn');
   
   // Fetch initial accounts
   fetchAccounts();
@@ -231,7 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set up remove button
         const removeBtn = accountElement.querySelector('.remove-btn');
         removeBtn.addEventListener('click', () => removeAccount(account.id));
-        
+
+        // Set up edit button
+        const editBtn = accountElement.querySelector('.edit-btn');
+        editBtn.addEventListener('click', () => openEditModal(account.id));
+
         accountsList.appendChild(accountElement);
       }
       
@@ -477,6 +488,72 @@ document.addEventListener('DOMContentLoaded', () => {
     
     img.src = qrPreviewImage.src;
   }
+  // Open edit modal, prefilled from the card's current values
+  function openEditModal(accountId) {
+    const card = accountsList.querySelector(`.account-card[data-id="${accountId}"]`);
+    if (!card) return;
+
+    const currentIssuer = card.querySelector('.account-issuer').textContent;
+    const currentName = card.querySelector('.account-name').textContent;
+
+    editIdInput.value = accountId;
+    editIssuerInput.value = currentIssuer === 'Unknown' ? '' : currentIssuer;
+    editNameInput.value = currentName;
+
+    editModal.hidden = false;
+    setTimeout(() => editNameInput.focus(), 0);
+  }
+
+  function closeEditModal() {
+    editModal.hidden = true;
+    editForm.reset();
+  }
+
+  editCancelBtn.addEventListener('click', closeEditModal);
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) closeEditModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !editModal.hidden) closeEditModal();
+  });
+
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const id = editIdInput.value;
+    const name = editNameInput.value.trim();
+    const issuer = editIssuerInput.value.trim();
+
+    if (!name) {
+      await customAlert.alert('Account name is required');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/accounts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, issuer }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to update');
+
+      const card = accountsList.querySelector(`.account-card[data-id="${id}"]`);
+      if (card) {
+        card.querySelector('.account-issuer').textContent = data.issuer || 'Unknown';
+        card.querySelector('.account-name').textContent = data.name;
+      }
+
+      closeEditModal();
+      await customAlert.success('Account updated successfully!', {
+        title: 'Account Updated',
+        confirmText: 'OK'
+      });
+    } catch (error) {
+      await customAlert.alert(`Error: ${error.message}`, { title: 'Error Updating Account' });
+    }
+  });
+
   // Delete all accounts functionality
   deleteAllBtn.addEventListener('click', async () => {
     // Confirm dialog with strong warning using custom alert

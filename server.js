@@ -442,6 +442,36 @@ app.post('/api/accounts/manual', async (req, res) => {
   }
 });
 
+// API to update an account's display fields (name + issuer only)
+app.put('/api/accounts/:id', async (req, res) => {
+  const accountId = req.params.id;
+  const { name, issuer } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Name is required' });
+  }
+
+  try {
+    const result = await dbRun(
+      `UPDATE accounts SET name = ?, issuer = ? WHERE id = ?`,
+      [name.trim(), (issuer || '').trim() || 'Unknown', accountId]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+
+    const updated = await dbGet(
+      `SELECT id, name, issuer FROM accounts WHERE id = ?`,
+      [accountId]
+    );
+    res.json(updated);
+  } catch (err) {
+    console.error(`Error updating account ${accountId}:`, err);
+    res.status(500).json({ error: 'Failed to update account' });
+  }
+});
+
 // API to delete an account
 app.delete('/api/accounts/:id', async (req, res) => {
   const accountId = req.params.id;
